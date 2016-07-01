@@ -9,7 +9,7 @@ A backend service communicating with Loom-web instance via REST API.<br>
  - Loading tests directly from framework (currently supporting Ruby + Cucumber)
  - Remote command executions for iOS and Android devices
  - Rebooting devices
- - Test results database
+ - Test reports provider with database
  <br>
  <br>
  <br>
