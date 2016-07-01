@@ -1,8 +1,8 @@
 # loom-controller
 
 
-A backend service communicating with Loom-web instance via REST API.
-loom-web: https://github.com/DavidSelby/loom-web
+A backend service communicating with Loom-web instance via REST API.<br>
+<b>loom-web:</b> https://github.com/DavidSelby/loom-web
 
 
  - Device recognition future
