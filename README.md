@@ -2,6 +2,8 @@
 
 
 A backend service communicating with Loom-web instance via REST API.
+loom-web: https://github.com/DavidSelby/loom-web
+
 
  - Device recognition future
  - Loading tests directly from framework (currently supporting Ruby + Cucumber)
