@@ -127,7 +127,7 @@ namespace ArachneControlerDotNet
 
             var command = cuke.command.Split (new string [] { "cucumber" }, StringSplitOptions.RemoveEmptyEntries) [0];
 
-            PrintLine (string.Format ("[NEW COMMAND] CUKE: {0} / DEVICE: {1}", cuke._id, cuke.device), ConsoleColor.Magenta);
+            PrintLine (string.Format ("[NEW COMMAND] CUKE: {0} / DEVICE: {1}", cuke._id, cuke.device.deviceName), ConsoleColor.Magenta);
 
             string jsonResultFile = string.Format ("{0}ArachneExecutionReport_{1}.txt", DateTime.Now.ToString ("yyMMdd-hhmm"), cuke._id);
             cuke.FileName = jsonResultFile;
@@ -280,6 +280,7 @@ namespace ArachneControlerDotNet
                         Executions.Running.Add (cuke);
                     }
                     cuke.device.SetStatus (DeviceStatus.Busy);
+                    cuke.SetStatus (CukeStatus.Running);
                     cuke.IsRunning = true;
                     device.IsAvailable = false;
                     RunningCukes.Add (cuke._id);
