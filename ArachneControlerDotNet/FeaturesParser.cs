@@ -21,6 +21,10 @@ namespace ArachneControlerDotNet
             FeatureFiles = loadFeatureFiles();
         }
 
+        /// <summary>
+        /// Loads the feature files.
+        /// </summary>
+        /// <returns>The feature files.</returns>
         private string[] loadFeatureFiles()
         {
 
@@ -28,22 +32,34 @@ namespace ArachneControlerDotNet
             return features;
         }
 
-        public FeaturesPayloadModel GetPayloads()
+        /// <summary>
+        /// Gets the features payload.
+        /// </summary>
+        /// <returns>The payloads.</returns>
+        public FeaturesPayloadModel GetPayload()
         {
             var payloads = new FeaturesPayloadModel();
 
             foreach (var file in FeatureFiles)
             {                
                 var featureName = file.Split('/').Last().Split('.').First();
-                var tags = loadTags(file);
-                var scenarios = loadScenarios(file);
-                payloads.features.Add(preparePayload(featureName, (List<TagModel>)tags, scenarios, file));
+                var tags = LoadTags(file);
+                var scenarios = LoadScenarios(file);
+                payloads.features.Add(PreparePayload(featureName, (List<TagModel>)tags, scenarios, file));
             }
 
             return payloads;
         }
 
-        private FeatureModel preparePayload(string featureName, List<TagModel> tags, List<ScenarioModel> scenarios, string path)
+        /// <summary>
+        /// Prepares the payload.
+        /// </summary>
+        /// <returns>The payload.</returns>
+        /// <param name="featureName">Feature name.</param>
+        /// <param name="tags">Tags.</param>
+        /// <param name="scenarios">Scenarios.</param>
+        /// <param name="path">Path.</param>
+        private FeatureModel PreparePayload(string featureName, List<TagModel> tags, List<ScenarioModel> scenarios, string path)
         {
             return new FeatureModel()
             {
@@ -54,7 +70,12 @@ namespace ArachneControlerDotNet
             };
         }
 
-        private List<ScenarioModel> loadScenarios(string file)
+        /// <summary>
+        /// Loads the scenarios.
+        /// </summary>
+        /// <returns>The scenarios.</returns>
+        /// <param name="file">File.</param>
+        private List<ScenarioModel> LoadScenarios(string file)
         {
             List<ScenarioModel> scenarios = new List<ScenarioModel>();
             var ftr = File.ReadAllLines(file);
@@ -67,7 +88,12 @@ namespace ArachneControlerDotNet
             return scenarios;
         }
 
-        private List<TagModel> loadTags(string file)
+        /// <summary>
+        /// Loads the tags.
+        /// </summary>
+        /// <returns>The tags.</returns>
+        /// <param name="file">File.</param>
+        private List<TagModel> LoadTags(string file)
         {
             int ct = 0;
             var tags = new List<TagModel>();

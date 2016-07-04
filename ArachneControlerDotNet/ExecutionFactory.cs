@@ -30,9 +30,8 @@ namespace ArachneControlerDotNet
 
         public int Count ()
         {
-           return (Pending.Count + Errors.Count + Running.Count + Stop.Count + Queued.Count + Restart.Count + Stopped.Count);
+            return (Pending.Count + Errors.Count + Running.Count + Stop.Count + Queued.Count + Restart.Count + Stopped.Count);
         }
-
     }
 }
 
