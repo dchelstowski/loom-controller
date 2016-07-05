@@ -14,13 +14,13 @@ namespace ArachneControlerDotNet
 
         protected bool _initRun { get; set; }
 
-        protected string FunctionalTestsPath { get; set; }
+        public static string FunctionalTestsPath { get; set; }
 
         protected FeaturesParser FeaturesParser { get; set; }
 
-        protected ExecutionFactory Executions { get; set; }
+        public static ExecutionFactory Executions { get; set; }
 
-        protected List<AppiumModel> Processes { get; set; }
+        public static List<AppiumModel> Processes { get; set; }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="T:ArachneControlerDotNet.Core"/> class.
@@ -85,7 +85,7 @@ namespace ArachneControlerDotNet
         /// <param name="cuke">Cuke.</param>
         /// <param name="shellId">Shell identifier.</param>
         /// <param name="device">Device.</param>
-        protected string ExecuteShell (string cmd, string parameters, CukesModel cuke = null, string shellId = null, DeviceModel device = null)
+        protected static string ExecuteShell (string cmd, string parameters, CukesModel cuke = null, string shellId = null, DeviceModel device = null)
         {
             var proc = new Process ();
 
@@ -129,7 +129,7 @@ namespace ArachneControlerDotNet
         /// </summary>
         /// <returns>The device.</returns>
         /// <param name="deviceId">Device identifier.</param>
-        protected void RestartDevice (string deviceId)
+        protected static void RestartDevice (string deviceId)
         {
             ExecuteShell ("adb", "-s " + deviceId + " reboot");
         }
@@ -141,7 +141,7 @@ namespace ArachneControlerDotNet
         /// <param name="chromePort">Chrome port.</param>
         /// <param name="appiumPort">Appium port.</param>
         /// <param name="udid">Udid.</param>
-        protected AppiumModel StartAppiumInstance (int chromePort, int appiumPort, string udid)
+        public static AppiumModel StartAppiumInstance (int chromePort, int appiumPort, string udid)
         {
             string parameters = string.Format ("-p {0} -U {1} --chromedriver-port {2}", appiumPort, udid, chromePort);
 
@@ -189,9 +189,9 @@ namespace ArachneControlerDotNet
         /// </summary>
         /// <returns>The appium instance.</returns>
         /// <param name="port">Port.</param>
-        protected void KillAppiumInstance (int port)
+        public static void KillAppiumInstance (int port)
         {
-            var appium = Processes.Where (p => p.Port == port).FirstOrDefault ();
+            var appium = Processes.FirstOrDefault (p => p.Port == port);
             Processes.Remove (appium);
 
             if (!appium.Process.HasExited) {

@@ -16,11 +16,7 @@ namespace ArachneControlerDotNet
     {
         public List<CukesModel> Cukes { get; set; }
 
-        public List<string> RunningCukes { get; set; }
-
-        private CancellationToken _cancelationToken { get; set; }
-
-        private CancellationTokenSource _tokenSource { get; set; }
+        public static List<string> RunningCukes { get; set; }
 
         /*-------------------------------------------------------------------*/
 
@@ -50,58 +46,6 @@ namespace ArachneControlerDotNet
         }
 
         /// <summary>
-        /// Calls the async execution method.
-        /// </summary>
-        /// <param name="cuke">Cuke.</param>
-        /// <param name="cancellationToken">Cancellation token.</param>
-        protected async void CallAsyncExecutionMethod (CukesModel cuke, CancellationToken cancellationToken)
-        {
-            PrintLine (string.Format ("TASK STARTED [device: {0}] [cuke: {1}]", cuke.device, cuke._id), ConsoleColor.Green);
-            Task<bool> execution = HandleExecution (cuke, cancellationToken);
-            await Task.Delay (5 * 1000);
-
-            bool result = await execution;
-
-            if (result) {
-                cuke.IsFinished = true;
-                cuke.IsRunning = false;
-                var device = Executions.Devices.Find (d => d.udid == cuke.device.udid);
-                var reportProvider = new ReportProvider ("reports/" + cuke.FileName, FunctionalTestsPath);
-                var report = reportProvider.GetFullReport (device, "QA", cuke._id); // hardcoded environment!
-
-                if (report != null) {
-                    PrintLine (report.Result, ConsoleColor.Green);
-
-                    var jsonPayload = JsonConvert.SerializeObject (report);
-
-                    var request = ApiRequest.CreateRequest (
-                                      ApiRequestType.Reports,
-                                      Method.POST,
-                                      string.Format ("{0}", cuke._id),
-                                      jsonPayload,
-                                      null);
-
-                    if (request.StatusCode == System.Net.HttpStatusCode.OK)
-                        PrintLine ("Execution report sent!", ConsoleColor.Green);
-                    else
-                        PrintLine ("Execution report upload failed!", ConsoleColor.Green);
-
-                    PrintLine (string.Format ("EXECUTION FINISHED [device: {0}] [cuke: {1}]", cuke.device.deviceName, cuke._id), ConsoleColor.Green);
-                } else {
-                    PrintLine (string.Format ("EXECUTION CANCELED [device: {0}] [cuke: {1}]", cuke.device.deviceName, cuke._id));
-                    cuke.SetStatus (CukeStatus.Error);
-                    cuke.device.SetStatus (DeviceStatus.Ready);
-                    return;
-                }
-
-                KillAppiumInstance (cuke.device.port);
-                Thread.Sleep (1000);
-                StartAppiumInstance (cuke.device.chromePort, cuke.device.port, cuke.device.udid);
-                device.SetStatus (DeviceStatus.Ready);
-            }
-        }
-
-        /// <summary>
         /// Restarts the adb server.
         /// </summary>
         protected void RestartAdbServer ()
@@ -111,78 +55,6 @@ namespace ArachneControlerDotNet
             Thread.Sleep (1000);
             ExecuteShell ("adb", "start-server");
             Thread.Sleep (1000);
-        }
-
-        /// <summary>
-        /// Handles the execution (task).
-        /// </summary>
-        /// <returns>Bool result.</returns>
-        /// <param name="cuke">Cuke.</param>
-        /// <param name="cancellationToken">Cancellation token.</param>
-        protected Task<bool> HandleExecution (CukesModel cuke, CancellationToken cancellationToken)
-        {
-            var tcs = new TaskCompletionSource<bool> ();
-
-            Directory.SetCurrentDirectory (FunctionalTestsPath);
-
-            var command = cuke.command.Split (new string [] { "cucumber" }, StringSplitOptions.RemoveEmptyEntries) [0];
-
-            PrintLine (string.Format ("[NEW COMMAND] CUKE: {0} / DEVICE: {1}", cuke._id, cuke.device.deviceName), ConsoleColor.Magenta);
-
-            string jsonResultFile = string.Format ("{0}ArachneExecutionReport_{1}.txt", DateTime.Now.ToString ("yyMMdd-hhmm"), cuke._id);
-            cuke.FileName = jsonResultFile;
-
-            var proc = new Process ();
-
-            proc.EnableRaisingEvents = true;
-            proc.StartInfo.UseShellExecute = false;
-            proc.StartInfo.RedirectStandardOutput = true;
-            proc.StartInfo.RedirectStandardError = true;
-            proc.StartInfo.FileName = "cucumber";
-            proc.StartInfo.Arguments = command + " -f json -o reports/" + jsonResultFile;
-
-            PrintLine ("cucumber" + command + " -f json -o reports/" + jsonResultFile);
-
-            proc.OutputDataReceived += (object sender, DataReceivedEventArgs e) => {
-                PrintLine ("[" + cuke.device + "]" + " Selenium output: " + e.Data);
-
-                if (_cancelationToken.IsCancellationRequested) {
-                    tcs.SetResult (false);
-                    RunningCukes.Remove (cuke._id);
-                    tcs.SetCanceled ();
-                    cuke.device.SetStatus (DeviceStatus.Ready);
-                    cuke.IsFinished = true;
-                    cuke.IsRunning = false;
-                    Executions.Devices.Find (d => d.udid == cuke.device.udid).IsAvailable = true;
-                    Executions.Running.Remove (cuke);
-                    return;
-                }
-            };
-
-            proc.ErrorDataReceived += (object sender, DataReceivedEventArgs e) => {
-                if (e.Data != null && e.Data.Contains ("Selenium::WebDriver::Error")) {
-                    PrintLine (e.Data);
-                    tcs.SetResult (false);
-                }
-            };
-
-            proc.Exited += (object sender, EventArgs e) => {
-                tcs.SetResult (true);
-                RunningCukes.Remove (cuke._id);
-                cuke.SetStatus (CukeStatus.Done);
-                cuke.IsFinished = true;
-                cuke.IsRunning = false;
-                Executions.Running.Remove (cuke);
-                Executions.Devices.Find (d => d.udid == cuke.device.udid).IsAvailable = true;
-                Task.Delay (5000);
-                proc.Dispose ();
-            };
-
-            proc.Start ();
-            proc.BeginErrorReadLine ();
-            proc.WaitForExit ();
-
-            return tcs.Task;
         }
 
         /// <summary>
@@ -208,7 +80,6 @@ namespace ArachneControlerDotNet
         public void Start ()
         {
             RunningCukes = new List<string> ();
-            int lastKnownCukesCount = 0;
             DisposeAppiumResources ();
             RestartAdbServer ();
             SendFeatures (Branch.Master);
@@ -216,25 +87,23 @@ namespace ArachneControlerDotNet
             UpdateDevices (GetDevices (), LoadAllUSBDevices ());
             ResetDevicesStatus (GetDevices ());
             SplashScreen ();
-            _tokenSource = new CancellationTokenSource ();
-            _cancelationToken = _tokenSource.Token;
+            CukesModel.TokenSource = new CancellationTokenSource ();
+            CukesModel.CancelationToken = CukesModel.TokenSource.Token;
 
             RebootLoop ();
 
             while (true) {
                 try {
                     Cukes = GetCommands ();
-                    if (Cukes.Count > lastKnownCukesCount) {
-                        lastKnownCukesCount = Cukes.Count;
-                        AssignCukes ();
-                    }
+                    AssignCukes ();
+
                 } catch (Exception e) {
                     PrintLine ("Error: Couldn't receive commands! " + e.Message);
                 }
 
                 if (Executions.Queued.Count > 0) {
                     foreach (var cuke in Executions.Queued.ToList ()) {
-                        ExecuteCuke (cuke);
+                        cuke.Execute ();
                     }
                 }
 
@@ -251,46 +120,17 @@ namespace ArachneControlerDotNet
 
                 if (Executions.Pending.Count > 0) {
                     foreach (var cuke in Executions.Pending.ToList ()) {
-                        ExecuteCuke (cuke);
+                        cuke.Execute ();
                     }
                 }
 
                 if (Executions.Stop.Count > 0) {
                     foreach (var cuke in Executions.Stop.ToList ()) {
-                        // TODO: ?
+                        cuke.Stop ();
                     }
                 }
 
                 UpdateDevices (GetDevices (), LoadAllUSBDevices ());
-            }
-        }
-
-        /// <summary>
-        /// Executes the cuke.
-        /// </summary>
-        /// <param name="cuke">Cuke.</param>
-        private void ExecuteCuke (CukesModel cuke)
-        {
-            if (!cuke.IsRunning && !cuke.IsFinished) {
-                var device = Executions.Devices.Find (d => d.udid == cuke.device.udid);
-
-                if (device != null && device.IsAvailable) {
-                    if (cuke.GetStatus == CukeStatus.Queued && cuke.GetStatus == CukeStatus.Pending) {
-                        Executions.Queued.Remove (cuke);
-                        Executions.Running.Add (cuke);
-                    }
-                    cuke.device.SetStatus (DeviceStatus.Busy);
-                    cuke.SetStatus (CukeStatus.Running);
-                    cuke.IsRunning = true;
-                    device.IsAvailable = false;
-                    RunningCukes.Add (cuke._id);
-                    Task.Factory.StartNew (() => CallAsyncExecutionMethod (cuke, _cancelationToken));
-                } else {
-                    if (cuke.GetStatus != CukeStatus.Queued) {
-                        ApiRequest.SetCukeStatus (CukeStatus.Queued, cuke._id);
-                        cuke.SetStatus (CukeStatus.Queued);
-                    }
-                }
             }
         }
 
@@ -300,28 +140,7 @@ namespace ArachneControlerDotNet
         private void AssignCukes ()
         {
             foreach (CukesModel cuke in Cukes) {
-                switch (cuke.GetStatus) {
-                case CukeStatus.Running:
-                    break;
-                case CukeStatus.Pending:
-                    if (Executions.Pending.FirstOrDefault (m => m._id == cuke._id) == null) {
-                        Executions.Pending.Add (cuke);
-                        Executions.Pending.Distinct ();
-                    }
-                    break;
-                case CukeStatus.Stop:
-                    if (Executions.Stop.FirstOrDefault (m => m._id == cuke._id) == null) {
-                        Executions.Stop.Add (cuke);
-                        Executions.Stop.Distinct ();
-                    }
-                    break;
-                case CukeStatus.Queued:
-                    if (Executions.Queued.FirstOrDefault (m => m._id == cuke._id) == null) {
-                        Executions.Queued.Add (cuke);
-                        Executions.Queued.Distinct ();
-                    }
-                    break;
-                }
+                cuke.Assign ();    
             }
         }
 
@@ -491,7 +310,7 @@ namespace ArachneControlerDotNet
                 var request = ApiRequest.CreateRequest (ApiRequestType.Devices, Method.POST, null, device);
                 flag = request.StatusCode == System.Net.HttpStatusCode.OK;
                 if (flag) {
-                    AppiumModel appiumProcessModel = Processes.Where (p => p.DeviceID == device.udid).FirstOrDefault ();
+                    AppiumModel appiumProcessModel = Processes.FirstOrDefault (p => p.DeviceID == device.udid);
 
                     int appiumPort = Processes.OrderBy (o => o.Port).ToList ().Last ().Port + 1;
                     int chromePort = appiumPort + 500;
@@ -499,7 +318,7 @@ namespace ArachneControlerDotNet
                     if (appiumProcessModel == null) {
                         appiumProcessModel = StartAppiumInstance (chromePort, appiumPort, device.udid);
                     } else
-                        appiumProcessModel = Processes.Where (p => p.DeviceID == device.udid).FirstOrDefault ();
+                        appiumProcessModel = Processes.FirstOrDefault (p => p.DeviceID == device.udid);
 
                     PrintLine (string.Format ("Added device {0}", device.deviceName), ConsoleColor.Green);
                 }
@@ -565,10 +384,10 @@ namespace ArachneControlerDotNet
         }
 
         /// <summary>
-        /// Removes the device.
+        /// Removes the devices.
         /// </summary>
         /// <param name="oldDevices">Old devices.</param>
-        protected bool RemoveDevice (List<DeviceModel> oldDevices)
+        protected bool RemoveDevices (List<DeviceModel> oldDevices)
         {
             bool flag = false;
 
@@ -652,7 +471,7 @@ namespace ArachneControlerDotNet
                     Executions.Devices.RemoveAll (d => d.udid == oldDevice.udid);
                 }
 
-                RemoveDevice (oldDB);
+                RemoveDevices (oldDB);
                 _initRun = false;
 
                 CreateDevicesJsonFile ();
