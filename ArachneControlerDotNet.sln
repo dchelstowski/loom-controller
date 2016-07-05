@@ -22,7 +22,7 @@ Global
 		$0.TextStylePolicy = $2
 		$2.inheritsSet = null
 		$2.inheritsScope = text/plain
-		$2.scope = application/xml
+		$2.scope = application/config+xml
 		$0.CSharpFormattingPolicy = $3
 		$3.IndentSwitchBody = True
 		$3.IndentBlocksInsideExpressions = True
@@ -75,6 +75,6 @@ Global
 		$10.LastFilePostfix = "@:\n  "
 		$10.IncludeDirectoryPaths = True
 		$9.inheritsSet = Mono
-		version = 0.3
+		version = 1.1
 	EndGlobalSection
 EndGlobal

@@ -8,7 +8,7 @@
     <RootNamespace>ArachneControlerDotNet</RootNamespace>
     <AssemblyName>ArachneControlerDotNet</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
-    <ReleaseVersion>0.3</ReleaseVersion>
+    <ReleaseVersion>1.1</ReleaseVersion>
     <StartupObject>ArachneControlerDotNet.MainClass</StartupObject>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x86' ">
