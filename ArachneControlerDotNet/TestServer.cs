@@ -102,37 +102,29 @@ namespace ArachneControlerDotNet
                 }
 
                 if (Executions.Queued.Count > 0) {
-                    foreach (var cuke in Executions.Queued.ToList ()) {
-                        cuke.Execute ();
-                    }
+                    Executions.Queued.Dequeue ().Execute ();
                 }
 
                 if (Executions.Running.Count > 0) {
-
-                    foreach (var cuke in Executions.Running.ToList ()) {
-                        if (!cuke.IsRunning && !RunningCukes.Contains (cuke._id)) {
-                            Executions.Running.Remove (cuke);
-                            Executions.Errors.Add (cuke);
-                            cuke.SetStatus (CukeStatus.Error);
-                        }
+                    if (Executions.Running.Peek () != (Executions.Running.Where (m => m.IsRunning && RunningCukes.Contains (m._id)))) {
+                        var cuke = Executions.Running.Dequeue ();
+                        Executions.Errors.Enqueue (cuke);
+                        cuke.SetStatus (CukeStatus.Error);
                     }
-                }
 
-                if (Executions.Pending.Count > 0) {
-                    foreach (var cuke in Executions.Pending.ToList ()) {
-                        cuke.Execute ();
+                    if (Executions.Pending.Count > 0) {
+                        Executions.Pending.Dequeue ().Execute ();
                     }
-                }
 
-                if (Executions.Stop.Count > 0) {
-                    foreach (var cuke in Executions.Stop.ToList ()) {
-                        cuke.Stop ();
+                    if (Executions.Stop.Count > 0) {
+                        Executions.Stop.Dequeue ().Stop ();
                     }
-                }
 
-                UpdateDevices (GetDevices (), LoadAllUSBDevices ());
+                    UpdateDevices (GetDevices (), LoadAllUSBDevices ());
+                }
             }
         }
+
 
         /// <summary>
         /// Assigns the cukes.

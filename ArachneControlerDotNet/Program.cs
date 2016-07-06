@@ -8,16 +8,19 @@ namespace ArachneControlerDotNet
     {
         public static void Main (string [] args)
         {
-            TestServer Server = null;
-            Console.CursorVisible = false;
+            int argsLength = args.Length;
+
             string testFrameworkPath;
             string webappUrl;
 
-            int argsLength = args.Length;
+            TestServer Server = null;
+            Console.CursorVisible = false;
+
 
             switch (argsLength) {
             case 0:
                 testFrameworkPath = "/Users/regressiontests/mobile-functional/appium-tests";
+                //testFrameworkPath = "/Users/dchelstowski/RubymineProjects/mobile-functional/appium-tests";
                 Server = new TestServer (testFrameworkPath);
                 break;
             case 1:

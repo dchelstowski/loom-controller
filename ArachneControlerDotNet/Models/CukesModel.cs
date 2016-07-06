@@ -67,21 +67,21 @@ namespace ArachneControlerDotNet
             case CukeStatus.Pending:
                 if (Core.Executions.Pending.FirstOrDefault (m => m._id == _id) == null) 
                 {
-                    Core.Executions.Pending.Add (this);
+                    Core.Executions.Pending.Enqueue (this);
                     Core.Executions.Pending.Distinct ();
                 }
                 break;
             case CukeStatus.Stop:
                 if (Core.Executions.Stop.FirstOrDefault (m => m._id == _id) == null) 
                 {
-                    Core.Executions.Stop.Add (this);
+                    Core.Executions.Stop.Enqueue (this);
                     Core.Executions.Stop.Distinct ();
                 }
                 break;
             case CukeStatus.Queued:
                 if (Core.Executions.Queued.FirstOrDefault (m => m._id == _id) == null) 
                 {
-                    Core.Executions.Queued.Add (this);
+                    Core.Executions.Queued.Enqueue (this);
                     Core.Executions.Queued.Distinct ();
                 }
                 break;
@@ -145,15 +145,14 @@ namespace ArachneControlerDotNet
             {
                 if (device != null && device.IsAvailable) 
                 {
-                    Core.Executions.Queued.Remove (this);
-                    Core.Executions.Running.Add (this);
+                    Core.Executions.Running.Enqueue (this);
                     device.SetStatus (DeviceStatus.Busy);
                     SetStatus (CukeStatus.Running);
                     IsRunning = true;
                     device.IsAvailable = false;
                     TestServer.RunningCukes.Add (_id);
                     Task.Factory.StartNew (() => CallAsyncExecutionMethod (this, CancelationToken));
-                } 
+                }
                 else 
                 {
                     if (GetStatus != CukeStatus.Queued) 
@@ -264,7 +263,8 @@ namespace ArachneControlerDotNet
                     cuke.IsFinished = true;
                     cuke.IsRunning = false;
                     Core.Executions.Devices.Find (d => d.udid == cuke.device.udid).IsAvailable = true;
-                    Core.Executions.Running.Remove (cuke);
+                    Core.Executions.Running.FirstOrDefault(m => m._id == cuke._id).Remove();
+                    cuke.SetStatus (CukeStatus.Stopped);
                     return;
                 }
             };
@@ -282,7 +282,7 @@ namespace ArachneControlerDotNet
                 cuke.SetStatus (CukeStatus.Done);
                 cuke.IsFinished = true;
                 cuke.IsRunning = false;
-                Core.Executions.Running.Remove (cuke);
+                Core.Executions.Running.FirstOrDefault(m => m._id == cuke._id).Remove();
                 Core.Executions.Devices.Find (d => d.udid == cuke.device.udid).IsAvailable = true;
                 Task.Delay (5000);
                 proc.Dispose ();
