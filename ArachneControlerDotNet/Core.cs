@@ -11,16 +11,15 @@ namespace ArachneControlerDotNet
 {
     public abstract class Core
     {
-
-        protected bool _initRun { get; set; }
-
         public static string FunctionalTestsPath { get; set; }
-
-        protected FeaturesParser FeaturesParser { get; set; }
 
         public static ExecutionFactory Executions { get; set; }
 
         public static List<AppiumModel> Processes { get; set; }
+
+        protected FeaturesParser FeaturesParser { get; set; }
+
+        protected bool _initRun { get; set; }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="T:ArachneControlerDotNet.Core"/> class.
@@ -35,9 +34,8 @@ namespace ArachneControlerDotNet
             Console.CancelKeyPress += (object sender, ConsoleCancelEventArgs e) => {
                 PrintLine ("CLOSING SERVER...", ConsoleColor.Red);
                 foreach (var proc in Processes) {
-                    if (proc.Port != 9000) {
-                        KillAppiumInstance (proc.Port);
-                    }
+                    if (proc.Port != 9000) 
+                        AppiumModel.Kill (proc.Port);
                 }
             };
 
@@ -85,7 +83,7 @@ namespace ArachneControlerDotNet
         /// <param name="cuke">Cuke.</param>
         /// <param name="shellId">Shell identifier.</param>
         /// <param name="device">Device.</param>
-        protected static string ExecuteShell (string cmd, string parameters, CukesModel cuke = null, string shellId = null, DeviceModel device = null)
+        public static string ExecuteShell (string cmd, string parameters, CukesModel cuke = null, string shellId = null, DeviceModel device = null)
         {
             var proc = new Process ();
 
@@ -122,82 +120,6 @@ namespace ArachneControlerDotNet
             }
 
             return output;
-        }
-
-        /// <summary>
-        /// Restarts the device.
-        /// </summary>
-        /// <returns>The device.</returns>
-        /// <param name="deviceId">Device identifier.</param>
-        protected static void RestartDevice (string deviceId)
-        {
-            ExecuteShell ("adb", "-s " + deviceId + " reboot");
-        }
-
-        /// <summary>
-        /// Starts the appium instance.
-        /// </summary>
-        /// <returns>The appium instance.</returns>
-        /// <param name="chromePort">Chrome port.</param>
-        /// <param name="appiumPort">Appium port.</param>
-        /// <param name="udid">Udid.</param>
-        public static AppiumModel StartAppiumInstance (int chromePort, int appiumPort, string udid)
-        {
-            string parameters = string.Format ("-p {0} -U {1} --chromedriver-port {2}", appiumPort, udid, chromePort);
-
-            Process proc = new Process ();
-            AppiumModel model = null;
-
-            proc.StartInfo.UseShellExecute = false;
-            proc.StartInfo.RedirectStandardOutput = true;
-            proc.StartInfo.RedirectStandardError = true;
-            proc.StartInfo.FileName = "appium";
-            proc.StartInfo.Arguments = parameters;
-
-            PrintLine (string.Format ("Creating new Appium instance: UDID {0}, ChromeDriver: {1}, Appium {2}", udid, chromePort, appiumPort));
-            Thread.Sleep (10 * 1000);
-            PrintLine ("Ready");
-
-
-            proc.ErrorDataReceived += (object sender, DataReceivedEventArgs e) => {
-                if (e.Data != null && !e.Data.Contains ("Couldn't start Appium REST http")) {
-                    PrintLine ("appium: " + e.Data, ConsoleColor.Red);
-                    if (!model.Process.HasExited)
-                        model.Process.Kill ();
-                    PrintLine ("Appium error encountered - rebooting device " + udid);
-                    RestartDevice (udid);
-                    ApiRequest.UpdateDeviceStatus (udid, DeviceStatus.Rebooting);
-                    Processes.Remove (model);
-                }
-            };
-
-            proc.Start ();
-            proc.BeginErrorReadLine ();
-
-            model = new AppiumModel () {
-                Process = proc,
-                DeviceID = udid,
-                Port = appiumPort
-            };
-            Processes.Add (model);
-
-            return model;
-        }
-
-        /// <summary>
-        /// Kills the appium instance.
-        /// </summary>
-        /// <returns>The appium instance.</returns>
-        /// <param name="port">Port.</param>
-        public static void KillAppiumInstance (int port)
-        {
-            var appium = Processes.FirstOrDefault (p => p.Port == port);
-            Processes.Remove (appium);
-
-            if (!appium.Process.HasExited) {
-                appium.Process.Kill ();
-                PrintLine ("Killed Appium instance on port: " + port);
-            }
         }
 
         /// <summary>

@@ -31,6 +31,10 @@ namespace ArachneControlerDotNet
         [JsonIgnore]
         public bool IsAvailable { get; set; }
 
+        /// <summary>
+        /// Gets the status represented in Enum.
+        /// </summary>
+        /// <value>The get status.</value>
         public DeviceStatus GetStatus {
             get {
                 if (!string.IsNullOrEmpty (status)) {
@@ -47,6 +51,10 @@ namespace ArachneControlerDotNet
             }
         }
 
+        /// <summary>
+        /// Sets the device status.
+        /// </summary>
+        /// <param name="status">Status.</param>
         public void SetStatus (DeviceStatus status)
         {
             switch (status) {
@@ -64,6 +72,18 @@ namespace ArachneControlerDotNet
             ApiRequest.UpdateDeviceStatus (udid, status);
         }
 
+        /// <summary>
+        /// Restarts the device.
+        /// </summary>
+        public void Restart()
+        {
+            Core.ExecuteShell ("adb", "-s " + _id + " reboot");
+        }
+
+        public static void Restart (string udid)
+        {
+            Core.ExecuteShell("adb", "-s " + udid + " reboot");
+        }
     }
 
 

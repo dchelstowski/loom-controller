@@ -213,9 +213,9 @@ namespace ArachneControlerDotNet
                     return;
                 }
 
-                Core.KillAppiumInstance (cuke.device.port);
+                AppiumModel.Kill (cuke.device.port);
                 Thread.Sleep (1000);
-                Core.StartAppiumInstance (cuke.device.chromePort, cuke.device.port, cuke.device.udid);
+                AppiumModel.Start (cuke.device.chromePort, cuke.device.port, cuke.device.udid);
                 currentDevice.SetStatus (DeviceStatus.Ready);
             }
         }

@@ -66,7 +66,7 @@ namespace ArachneControlerDotNet
                 while (true) {
                     foreach (var device in GetDevices ()) {
                         if (device.GetStatus == DeviceStatus.Restart) {
-                            RestartDevice (device.udid);
+                            device.Restart ();
                             device.SetStatus (DeviceStatus.Rebooting);
                         }
                     }
@@ -80,7 +80,7 @@ namespace ArachneControlerDotNet
         public void Start ()
         {
             RunningCukes = new List<string> ();
-            DisposeAppiumResources ();
+            AppiumModel.DisposeAppiumResources ();
             RestartAdbServer ();
             SendFeatures (Branch.Master);
             ApiRequest.CreateRequest (ApiRequestType.Devices, Method.DELETE, null, null);
@@ -172,29 +172,7 @@ namespace ArachneControlerDotNet
             }
         }
 
-        /// <summary>
-        /// Disposes the appium resources.
-        /// </summary>
-        protected void DisposeAppiumResources ()
-        {
-            var output = ExecuteShell ("/bin/bash", "-c 'ps -ax | grep appium'");
-            string [] lines = output.Split ('\n');
 
-            foreach (var line in lines) {
-                if (line.Contains ("grep"))
-                    continue;
-
-                var words = line.Split (' ');
-                int pid = 0;
-                int.TryParse (words [0].Trim (), out pid);
-
-                if (pid == 0)
-                    continue;
-
-                PrintLine ("Trying to dispose resource " + pid);
-                ExecuteShell ("/bin/bash", "-c 'kill " + pid + "'");
-            }
-        }
 
         /// <summary>
         /// Gets the android devices.
@@ -222,9 +200,9 @@ namespace ArachneControlerDotNet
                 int chromePort = appiumPort + 500;
 
                 if (appiumProcessModel == null) {
-                    appiumProcessModel = StartAppiumInstance (chromePort, appiumPort, device);
+                    appiumProcessModel = AppiumModel.Start(chromePort, appiumPort, device);
                 } else {
-                    appiumProcessModel = Processes.Where (p => p.DeviceID == device).FirstOrDefault ();
+                    appiumProcessModel = Processes.FirstOrDefault (p => p.DeviceID == device);
                     appiumPort = appiumProcessModel.Port;
                     chromePort = appiumPort + 500;
                 }
@@ -308,7 +286,7 @@ namespace ArachneControlerDotNet
                     int chromePort = appiumPort + 500;
 
                     if (appiumProcessModel == null) {
-                        appiumProcessModel = StartAppiumInstance (chromePort, appiumPort, device.udid);
+                        appiumProcessModel = AppiumModel.Start (chromePort, appiumPort, device.udid);
                     } else
                         appiumProcessModel = Processes.FirstOrDefault (p => p.DeviceID == device.udid);
 
@@ -388,20 +366,10 @@ namespace ArachneControlerDotNet
                 flag = request.StatusCode == System.Net.HttpStatusCode.OK;
                 if (flag && !_initRun) {
                     PrintLine (string.Format ("Removed device {0}", oldDevice.deviceName), ConsoleColor.Cyan);
-                    KillAppiumInstance (oldDevice.port);
+                    AppiumModel.Kill (oldDevice.port);
                 }
             }
             return flag;
-        }
-
-        /// <summary>
-        /// Checks the cukes amount.
-        /// </summary>
-        /// <returns>The cukes amount.</returns>
-        private int CheckCukesAmount ()
-        {
-            var request = ApiRequest.CreateRequest<List<CukesModel>> (ApiRequestType.Cukes, null);
-            return request.Count ();
         }
 
         /// <summary>
