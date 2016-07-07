@@ -15,7 +15,7 @@ namespace ArachneControlerDotNet
 
         public static ExecutionFactory Executions { get; set; }
 
-        public static List<AppiumModel> Processes { get; set; }
+        public static List<Appium> Processes { get; set; }
 
         protected FeaturesParser FeaturesParser { get; set; }
 
@@ -35,15 +35,15 @@ namespace ArachneControlerDotNet
                 PrintLine ("CLOSING SERVER...", ConsoleColor.Red);
                 foreach (var proc in Processes) {
                     if (proc.Port != 9000) 
-                        AppiumModel.Kill (proc.Port);
+                        Appium.Kill (proc.Port);
                 }
             };
 
             _initRun = true;
 
-            Processes = new List<AppiumModel> ()
+            Processes = new List<Appium> ()
             {
-                new AppiumModel()
+                new Appium()
                 {
                     DeviceID = "12345",
                     Process = null,
@@ -83,7 +83,7 @@ namespace ArachneControlerDotNet
         /// <param name="cuke">Cuke.</param>
         /// <param name="shellId">Shell identifier.</param>
         /// <param name="device">Device.</param>
-        public static string ExecuteShell (string cmd, string parameters, CukesModel cuke = null, string shellId = null, DeviceModel device = null)
+        public static string ExecuteShell (string cmd, string parameters, Cuke cuke = null, string shellId = null, Device device = null)
         {
             var proc = new Process ();
 

@@ -8,7 +8,7 @@ namespace ArachneControlerDotNet
 {
     public class ReportProvider
     {
-        public List<CucumberReportModel> Report { get; set; }
+        public List<Report> Report { get; set; }
 
         public ReportProvider(string path, string functionalTestsPath)
         {
@@ -18,17 +18,17 @@ namespace ArachneControlerDotNet
                 var resultJson = resultFile.ReadToEnd ();
 
                 if (Report == null)
-                    Report = JsonConvert.DeserializeObject<List<CucumberReportModel>> (resultJson);
+                    Report = JsonConvert.DeserializeObject<List<Report>> (resultJson);
             } else
                 Console.WriteLine ("DID NOT FIND REPORT FILE.\n" + path);
         }
 
-        public ArachneReportModel GetFullReport(DeviceModel device, string environment, string runId)
+        public ArachneReport GetFullReport(Device device, string environment, string runId)
         {
             if (Report != null)
             {
-                ArachneReportModel reportModel = new ArachneReportModel();
-                SummaryModel summaryReport = GetSummaryModel();
+                ArachneReport reportModel = new ArachneReport();
+                SummaryReport summaryReport = GetSummaryModel();
 
                 reportModel.Device = device;
                 reportModel.Cuke = runId;
@@ -96,9 +96,9 @@ namespace ArachneControlerDotNet
 
         }
 
-        public SummaryModel GetSummaryModel()
+        public SummaryReport GetSummaryModel()
         {
-            SummaryModel summary = new SummaryModel();
+            SummaryReport summary = new SummaryReport();
             foreach (var report in Report)
             {                
                 for (int i = 0; i < report.elements.Count; i++)

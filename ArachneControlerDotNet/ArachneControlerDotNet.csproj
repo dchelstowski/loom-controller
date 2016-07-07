@@ -44,19 +44,19 @@
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Enums.cs" />
-    <Compile Include="Models\DeviceModel.cs" />
+    <Compile Include="Models\Device.cs" />
     <Compile Include="FeaturesParser.cs" />
-    <Compile Include="Models\CukesModel.cs" />
-    <Compile Include="Models\FeaturesPayloadModel.cs" />
-    <Compile Include="Models\AppiumModel.cs" />
+    <Compile Include="Models\Cuke.cs" />
+    <Compile Include="Models\FeaturesPayload.cs" />
+    <Compile Include="Models\Appium.cs" />
     <Compile Include="TestServer.cs" />
     <Compile Include="Core.cs" />
     <Compile Include="ReportProvider.cs" />
-    <Compile Include="Models\SummaryModel.cs" />
-    <Compile Include="Models\CucumberReportModel.cs" />
-    <Compile Include="Models\ArachneReportModel.cs" />
-    <Compile Include="ExecutionFactory.cs" />
+    <Compile Include="Models\SummaryReport.cs" />
+    <Compile Include="Models\Report.cs" />
+    <Compile Include="Models\ArachneReport.cs" />
     <Compile Include="ApiRequest.cs" />
+    <Compile Include="ExecutionFactory.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>

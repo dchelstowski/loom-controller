@@ -5,7 +5,7 @@ using Newtonsoft.Json;
 
 namespace ArachneControlerDotNet
 {
-    public class DeviceModel
+    public class Device
     {
         public string _id { get; set; }
 

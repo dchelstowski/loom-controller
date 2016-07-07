@@ -6,25 +6,25 @@ namespace ArachneControlerDotNet
 {
     public class ExecutionFactory
     {
-        public Queue<CukesModel> Pending;
-        public Queue<CukesModel> Errors;
-        public Queue<CukesModel> Running;
-        public Queue<CukesModel> Stop;
-        public Queue<CukesModel> Queued;
-        public Queue<CukesModel> Restart;
-        public Queue<CukesModel> Stopped;
-        public List<DeviceModel> Devices;
+        public Queue<Cuke> Pending;
+        public Queue<Cuke> Errors;
+        public Queue<Cuke> Running;
+        public Queue<Cuke> Stop;
+        public Queue<Cuke> Queued;
+        public Queue<Cuke> Restart;
+        public Queue<Cuke> Stopped;
+        public List<Device> Devices;
 
         public ExecutionFactory ()
         {
-            Pending     = new Queue<CukesModel> ();
-            Errors      = new Queue<CukesModel> ();
-            Running     = new Queue<CukesModel> ();
-            Stop        = new Queue<CukesModel> ();
-            Queued      = new Queue<CukesModel> ();
-            Restart     = new Queue<CukesModel> ();
-            Stopped     = new Queue<CukesModel> ();
-            Devices     = new List<DeviceModel> ();
+            Pending     = new Queue<Cuke> ();
+            Errors      = new Queue<Cuke> ();
+            Running     = new Queue<Cuke> ();
+            Stop        = new Queue<Cuke> ();
+            Queued      = new Queue<Cuke> ();
+            Restart     = new Queue<Cuke> ();
+            Stopped     = new Queue<Cuke> ();
+            Devices     = new List<Device> ();
         }
 
         public int Count ()

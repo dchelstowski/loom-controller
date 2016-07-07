@@ -2,7 +2,7 @@
 
 namespace ArachneControlerDotNet
 {
-    public class SummaryModel
+    public class SummaryReport
     {
         public int Passed { get; set; }
 

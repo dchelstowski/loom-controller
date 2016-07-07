@@ -129,7 +129,7 @@ namespace ArachneControlerDotNet
         public int line { get; set; }
     }
 
-    public class CucumberReportModel
+    public class Report
     {
         [JsonProperty("uri")]
         public string uri { get; set; }

@@ -36,9 +36,9 @@ namespace ArachneControlerDotNet
         /// Gets the features payload.
         /// </summary>
         /// <returns>The payloads.</returns>
-        public FeaturesPayloadModel GetPayload()
+        public FeaturesPayload GetPayload()
         {
-            var payloads = new FeaturesPayloadModel();
+            var payloads = new FeaturesPayload();
 
             foreach (var file in FeatureFiles)
             {                
@@ -109,12 +109,12 @@ namespace ArachneControlerDotNet
                     {
                         if (ct < 4)
                         {
-                            var tag = new TagModel(word, true);
+                            var tag = new TagModel (word, true);
                             tags.Add(tag);
                         }
                         else
                         {
-                            var tag = new TagModel(word, false);
+                            var tag = new TagModel (word, false);
                             tags.Add(tag);
                         }
                     }

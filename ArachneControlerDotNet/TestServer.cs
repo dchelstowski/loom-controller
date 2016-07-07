@@ -14,7 +14,7 @@ namespace ArachneControlerDotNet
 {
     public class TestServer : Core
     {
-        public List<CukesModel> Cukes { get; set; }
+        public List<Cuke> Cukes { get; set; }
 
         public static List<string> RunningCukes { get; set; }
 
@@ -38,9 +38,9 @@ namespace ArachneControlerDotNet
         /// Resets the devices status.
         /// </summary>
         /// <param name="devices">Devices.</param>
-        protected void ResetDevicesStatus (List<DeviceModel> devices)
+        protected void ResetDevicesStatus (List<Device> devices)
         {
-            foreach (DeviceModel device in devices) {
+            foreach (Device device in devices) {
                 device.SetStatus (DeviceStatus.Ready);
             }
         }
@@ -80,15 +80,15 @@ namespace ArachneControlerDotNet
         public void Start ()
         {
             RunningCukes = new List<string> ();
-            AppiumModel.DisposeAppiumResources ();
+            Appium.DisposeAppiumResources ();
             RestartAdbServer ();
             SendFeatures (Branch.Master);
             ApiRequest.CreateRequest (ApiRequestType.Devices, Method.DELETE, null, null);
             UpdateDevices (GetDevices (), LoadAllUSBDevices ());
             ResetDevicesStatus (GetDevices ());
             SplashScreen ();
-            CukesModel.TokenSource = new CancellationTokenSource ();
-            CukesModel.CancelationToken = CukesModel.TokenSource.Token;
+            Cuke.TokenSource = new CancellationTokenSource ();
+            Cuke.CancelationToken = Cuke.TokenSource.Token;
 
             RebootLoop ();
 
@@ -131,7 +131,7 @@ namespace ArachneControlerDotNet
         /// </summary>
         private void AssignCukes ()
         {
-            foreach (CukesModel cuke in Cukes) {
+            foreach (Cuke cuke in Cukes) {
                 cuke.Assign ();    
             }
         }
@@ -140,7 +140,7 @@ namespace ArachneControlerDotNet
         /// Loads all USB devices.
         /// </summary>
         /// <returns>The list of all USB devices.</returns>
-        protected List<DeviceModel> LoadAllUSBDevices ()
+        protected List<Device> LoadAllUSBDevices ()
         {
             return GetAndroidDevices ().Concat (GetAppleDevices ()).ToList ();
         }
@@ -149,9 +149,9 @@ namespace ArachneControlerDotNet
         /// Gets the devices.
         /// </summary>
         /// <returns>The list of devices.</returns>
-        protected List<DeviceModel> GetDevices ()
+        protected List<Device> GetDevices ()
         {
-            var request = ApiRequest.CreateRequest<List<DeviceModel>> (ApiRequestType.Devices, null);
+            var request = ApiRequest.CreateRequest<List<Device>> (ApiRequestType.Devices, null);
             return request;
         }
 
@@ -160,7 +160,7 @@ namespace ArachneControlerDotNet
         /// </summary>
         /// <returns>The specific devices.</returns>
         /// <param name="deviceType">Device type.</param>
-        protected List<DeviceModel> GetSpecificDevices (DeviceType deviceType)
+        protected List<Device> GetSpecificDevices (DeviceType deviceType)
         {
             switch (deviceType) {
             case DeviceType.Android:
@@ -178,13 +178,13 @@ namespace ArachneControlerDotNet
         /// Gets the android devices.
         /// </summary>
         /// <returns>The android devices.</returns>
-        protected List<DeviceModel> GetAndroidDevices ()
+        protected List<Device> GetAndroidDevices ()
         {
             var output = ExecuteShell ("adb", "devices -l");
 
             string [] devices = output.Split ('\n');
 
-            List<DeviceModel> androidPayload = new List<DeviceModel> ();
+            List<Device> androidPayload = new List<Device> ();
             List<string> androidDevices = new List<string> ();
 
             foreach (string line in devices) {
@@ -194,20 +194,20 @@ namespace ArachneControlerDotNet
             }
 
             foreach (string device in androidDevices) {
-                AppiumModel appiumProcessModel = Processes.Where (p => p.DeviceID == device).FirstOrDefault ();
+                Appium appiumProcessModel = Processes.Where (p => p.DeviceID == device).FirstOrDefault ();
 
                 int appiumPort = Processes.OrderBy (o => o.Port).ToList ().Last ().Port + 1;
                 int chromePort = appiumPort + 500;
 
                 if (appiumProcessModel == null) {
-                    appiumProcessModel = AppiumModel.Start(chromePort, appiumPort, device);
+                    appiumProcessModel = Appium.Start(chromePort, appiumPort, device);
                 } else {
                     appiumProcessModel = Processes.FirstOrDefault (p => p.DeviceID == device);
                     appiumPort = appiumProcessModel.Port;
                     chromePort = appiumPort + 500;
                 }
 
-                DeviceModel dev = new DeviceModel () {
+                Device dev = new Device () {
                     platformName = GetAndroidDetails ("net.bt.name", device).Replace ("\n", string.Empty).Replace ("\r", string.Empty),
                     platformVersion = GetAndroidDetails ("ro.build.version.release", device).Replace ("\n", string.Empty).Replace ("\r", string.Empty),
                     deviceName = GetAndroidDetails ("ro.product.model", device).Replace ("\n", string.Empty).Replace ("\r", string.Empty),
@@ -241,17 +241,17 @@ namespace ArachneControlerDotNet
         /// Gets the apple devices.
         /// </summary>
         /// <returns>The apple devices.</returns>
-        protected List<DeviceModel> GetAppleDevices ()
+        protected List<Device> GetAppleDevices ()
         {
             var output = ExecuteShell ("instruments", "-s devices", null, MethodInfo.GetCurrentMethod ().Name);
             string [] instruments = output.Split ('\n');
             var instrumentsList = instruments.Where (val => val != instruments.First ()).ToList ();
 
-            var devices = new List<DeviceModel> ();
+            var devices = new List<Device> ();
 
             foreach (string ios in instrumentsList) {
                 if (!string.IsNullOrEmpty (ios)) {
-                    var dev = new DeviceModel () {
+                    var dev = new Device () {
                         deviceName = ios.Split ('(') [0],
                         platformName = "iOS",
                         platformVersion = ios.Contains (")") ? ios.Split ('(') [1].Split (')') [0] : "NON-IOS DEVICE",
@@ -272,7 +272,7 @@ namespace ArachneControlerDotNet
         /// Sets the devices.
         /// </summary>
         /// <param name="devices">Devices.</param>
-        private bool SetDevices (List<DeviceModel> devices)
+        private bool SetDevices (List<Device> devices)
         {
             bool flag = false;
 
@@ -280,13 +280,13 @@ namespace ArachneControlerDotNet
                 var request = ApiRequest.CreateRequest (ApiRequestType.Devices, Method.POST, null, device);
                 flag = request.StatusCode == System.Net.HttpStatusCode.OK;
                 if (flag) {
-                    AppiumModel appiumProcessModel = Processes.FirstOrDefault (p => p.DeviceID == device.udid);
+                    Appium appiumProcessModel = Processes.FirstOrDefault (p => p.DeviceID == device.udid);
 
                     int appiumPort = Processes.OrderBy (o => o.Port).ToList ().Last ().Port + 1;
                     int chromePort = appiumPort + 500;
 
                     if (appiumProcessModel == null) {
-                        appiumProcessModel = AppiumModel.Start (chromePort, appiumPort, device.udid);
+                        appiumProcessModel = Appium.Start (chromePort, appiumPort, device.udid);
                     } else
                         appiumProcessModel = Processes.FirstOrDefault (p => p.DeviceID == device.udid);
 
@@ -357,7 +357,7 @@ namespace ArachneControlerDotNet
         /// Removes the devices.
         /// </summary>
         /// <param name="oldDevices">Old devices.</param>
-        protected bool RemoveDevices (List<DeviceModel> oldDevices)
+        protected bool RemoveDevices (List<Device> oldDevices)
         {
             bool flag = false;
 
@@ -366,7 +366,7 @@ namespace ArachneControlerDotNet
                 flag = request.StatusCode == System.Net.HttpStatusCode.OK;
                 if (flag && !_initRun) {
                     PrintLine (string.Format ("Removed device {0}", oldDevice.deviceName), ConsoleColor.Cyan);
-                    AppiumModel.Kill (oldDevice.port);
+                    Appium.Kill (oldDevice.port);
                 }
             }
             return flag;
@@ -376,9 +376,9 @@ namespace ArachneControlerDotNet
         /// Gets the commands.
         /// </summary>
         /// <returns>The commands.</returns>
-        protected List<CukesModel> GetCommands ()
+        protected List<Cuke> GetCommands ()
         {
-            return ApiRequest.CreateRequest<List<CukesModel>> (ApiRequestType.Cukes, null);
+            return ApiRequest.CreateRequest<List<Cuke>> (ApiRequestType.Cukes, null);
         }
 
         /// <summary>
@@ -386,20 +386,20 @@ namespace ArachneControlerDotNet
         /// </summary>
         /// <param name="devicesDB">Devices db.</param>
         /// <param name="devicesUSB">Devices usb.</param>
-        private void UpdateDevices (List<DeviceModel> devicesDB, List<DeviceModel> devicesUSB)
+        private void UpdateDevices (List<Device> devicesDB, List<Device> devicesUSB)
         {
             try {
-                var newUSB = new List<DeviceModel> ();
-                var oldDB = new List<DeviceModel> ();
+                var newUSB = new List<Device> ();
+                var oldDB = new List<Device> ();
 
                 var dbDevices = new List<string> ();
                 var usbDevices = new List<string> ();
 
-                foreach (DeviceModel db in devicesDB) {
+                foreach (Device db in devicesDB) {
                     dbDevices.Add (db.udid);
                 }
 
-                foreach (DeviceModel usb in devicesUSB) {
+                foreach (Device usb in devicesUSB) {
                     usbDevices.Add (usb.udid);
                 }
 

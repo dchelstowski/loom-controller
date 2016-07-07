@@ -4,10 +4,10 @@ using Newtonsoft.Json;
 
 namespace ArachneControlerDotNet
 {
-    public class ArachneReportModel
+    public class ArachneReport
     {
         [JsonProperty("device")]
-        public DeviceModel Device { get; set; }
+        public Device Device { get; set; }
 
         [JsonProperty("cuke")]
         public string Cuke { get; set; }

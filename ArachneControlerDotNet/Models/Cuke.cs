@@ -10,7 +10,7 @@ using RestSharp;
 
 namespace ArachneControlerDotNet
 {
-    public class CukesModel
+    public class Cuke
     {
         public static CancellationToken CancelationToken { get; set; }
 
@@ -24,7 +24,7 @@ namespace ArachneControlerDotNet
 
         public string status { get; set; }
 
-        public DeviceModel device { get; set; }
+        public Device device { get; set; }
 
         [JsonIgnore]
         public bool IsFinished { get; set; }
@@ -169,7 +169,7 @@ namespace ArachneControlerDotNet
         /// </summary>
         /// <param name="cuke">Cuke.</param>
         /// <param name="cancellationToken">Cancellation token.</param>
-        protected async void CallAsyncExecutionMethod (CukesModel cuke, CancellationToken cancellationToken)
+        protected async void CallAsyncExecutionMethod (Cuke cuke, CancellationToken cancellationToken)
         {
             Core.PrintLine (string.Format ("TASK STARTED [device: {0}] [cuke: {1}]", cuke.device, cuke._id), ConsoleColor.Green);
             Task<bool> execution = HandleExecution (cuke, cancellationToken);
@@ -213,9 +213,9 @@ namespace ArachneControlerDotNet
                     return;
                 }
 
-                AppiumModel.Kill (cuke.device.port);
+                Appium.Kill (cuke.device.port);
                 Thread.Sleep (1000);
-                AppiumModel.Start (cuke.device.chromePort, cuke.device.port, cuke.device.udid);
+                Appium.Start (cuke.device.chromePort, cuke.device.port, cuke.device.udid);
                 currentDevice.SetStatus (DeviceStatus.Ready);
             }
         }
@@ -226,7 +226,7 @@ namespace ArachneControlerDotNet
         /// <returns>The bool value representing test result.</returns>
         /// <param name="cuke">Cuke.</param>
         /// <param name="cancellationToken">Cancellation token.</param>
-        protected Task<bool> HandleExecution (CukesModel cuke, CancellationToken cancellationToken)
+        protected Task<bool> HandleExecution (Cuke cuke, CancellationToken cancellationToken)
         {
             var tcs = new TaskCompletionSource<bool> ();
 

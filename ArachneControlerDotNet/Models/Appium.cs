@@ -5,7 +5,7 @@ using System.Threading;
 
 namespace ArachneControlerDotNet
 {
-    public class AppiumModel
+    public class Appium
     {
         public int      Port { get; set; }        
 
@@ -20,9 +20,9 @@ namespace ArachneControlerDotNet
         /// <param name="chromePort">Chrome port.</param>
         /// <param name="appiumPort">Appium port.</param>
         /// <param name="udid">Udid.</param>
-        public static AppiumModel Start (int chromePort, int appiumPort, string udid)
+        public static Appium Start (int chromePort, int appiumPort, string udid)
         {
-            AppiumModel model = null;
+            Appium model = null;
 
             Core.PrintLine (string.Format ("Creating new Appium instance: UDID {0}, ChromeDriver: {1}, Appium {2}", udid, chromePort, appiumPort));
 
@@ -42,7 +42,7 @@ namespace ArachneControlerDotNet
                     if (!model.Process.HasExited)
                         model.Process.Kill ();
                     Core.PrintLine ("Appium error encountered - rebooting device " + udid);
-                    DeviceModel.Restart (udid);
+                    Device.Restart (udid);
                     ApiRequest.UpdateDeviceStatus (udid, DeviceStatus.Rebooting);
                     Core.Processes.Remove (model);
                 }
@@ -53,7 +53,7 @@ namespace ArachneControlerDotNet
 
             Thread.Sleep (10 * 1000);
 
-            model = new AppiumModel () {
+            model = new Appium () {
                 Process = proc,
                 DeviceID = udid,
                 Port = appiumPort
